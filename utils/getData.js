@@ -1,25 +1,53 @@
 const axios = require('axios');
-const assert = require('assert').strict;
 
 const accessKey = require('../config/accessKey').accessKey;
 const Exchange = require('../models/Exchange');
+const deepEqual = require('../utils/deepEqual');
 
 const baseUrl = 'http://data.fixer.io/api';
 // const timeUpdated = 15 * 60 * 1000; // ms
 const timeUpdated = 1 * 1000; // ms
 
-const getData = () => {
-  axios.get(`${baseUrl}/latest`, {
+
+const getOldData = () => {
+  return new Promise((resolve, reject) => {
+    // Lấy dữ liệu mới nhất từ DB
+    Exchange.findOne()
+      .sort({ _id: -1 })
+      .exec((error, data) => {
+        if (error) {
+          console.log('Can not get data: ', error.message);
+          reject(error);
+        }
+
+        if (data === null) {
+          resolve(null);
+          return;
+        }
+
+        let oldData = {
+          date: data.date,
+          rates: data.rates
+        }
+
+        resolve(oldData);
+      });
+  })
+}
+
+const getDataAndUpdate = () => {
+  // axios.get(`${baseUrl}/latest`, {
+    axios.get(`${baseUrl}/latest`, {
     params: {
       access_key: accessKey,
       base: 'EUR'
     }
   })
-    .then((response) => {
+    .then(async (response) => {
       const result = response.data;
-      // console.log(result);
 
       if (result.success === false) {
+        console.log('Fail to get data');
         return;
       }
 
@@ -28,48 +56,33 @@ const getData = () => {
         rates: result.rates
       }
 
-      checkDataChange(newData);
+      const oldData = await getOldData();
 
-      const exchange = new Exchange({
-        timestamp: result.timestamp,
-        date: result.date,
-        base: result.base,
-        rates: result.rates
-      });
+      // Kiểm tra dữ liêu mới lấy về có trùng lặp với dữ liệu cũ hay không
+      if (deepEqual(newData, oldData)) {
+        console.log('Trùng lặp, không update');
+      }
+      else {
+        console.log('Không trùng lặp')
 
-      exchange.save()
-        .then(() => console.log('Updated successfully'))
-        .catch(error => console.log('Failed to update: ', err.message));
+        // Update dữ liệu
+        const exchange = new Exchange({
+          timestamp: result.timestamp,
+          date: result.date,
+          base: result.base,
+          rates: result.rates
+        });
+
+        exchange.save()
+          .then(() => console.log('Updated successfully'))
+          .catch(error => console.log('Failed to update: ', err.message));
+      }
     })
     .catch((error) => {
       console.log(error);
     })
 }
 
-const checkDataChange = (newData) => {
-  console.log('new Data: ', newData)
-
-  // Lấy dữ liệu mới nhất trong MongoDB
-  Exchange.findOne()
-    .sort({_id: -1})
-    .exec((error, data) => {
-      if (error) {
-        console.log('Can not get data: ', error.message);
-        return;
-      }
-      const oldData = {
-        date: data.date,
-        rates: data.rates
-      }
-
-      console.log('Old Data: ', oldData)
-
-      assert.notDeepStrictEqual(oldData, newData);
-    });
-
-}
-// getData();
-// checkDataChange();
-
-setInterval(getData, timeUpdated);
+// getDataAndUpdate();
+setInterval(getDataAndUpdate, timeUpdated);
 
