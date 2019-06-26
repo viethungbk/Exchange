@@ -35,9 +35,9 @@ const getOldData = () => {
   })
 }
 
-const getDataAndUpdate = () => {
+const getDataAndUpdate = (date = 'latest') => {
   // axios.get(`${baseUrl}/latest`, {
-    axios.get(`${baseUrl}/latest`, {
+    axios.get(`${baseUrl}/${date}`, {
     params: {
       access_key: accessKey,
       base: 'EUR'
@@ -84,5 +84,12 @@ const getDataAndUpdate = () => {
 }
 
 // getDataAndUpdate();
-setInterval(getDataAndUpdate, timeUpdated);
+// setInterval(getDataAndUpdate, timeUpdated);
+
+for (let d = new Date('1999-01-01'); d <= Date.now(); d.setDate(d.getDate() + 1)) {
+  const date = d.toISOString().slice(0, 10);
+  console.log(date);
+
+  getDataAndUpdate(date);
+}
 
