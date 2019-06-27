@@ -1,22 +1,24 @@
 const path = require('path');
 const fs = require('fs');
 
-module.exports = (app) => {
+const autoImport = (app) => {
   const relativePath = '../routes/api';
-  // Lấy đường dẫn thư mục
-  const directoryPath = path.join(__dirname, relativePath);
+  const routeDir = path.join(__dirname, relativePath);
+  let routers = fs.readdirSync(routeDir);
 
-  fs.readdir(directoryPath, (err, fileNames) => {
-    //handling error
-    if (err) {
-        return console.log('Unable to scan directory: ' + err);
+  console.log(routers);
+
+  routers.forEach(routePath => {
+    if (routePath != path.join(__dirname, 'index.js')) {
+      const absolutePath = path.join(__dirname, relativePath, routePath);
+      console.log(absolutePath);
+      require(absolutePath)(app);
+      // const indexOfDot = routePath.lastIndexOf('.');
+      // const module = require(absolutePath);
+      // app.use('/api/' + routePath.slice(0, indexOfDot) + '/', module);
+      // console.log('/api/' + routePath.slice(0, indexOfDot))
     }
-
-    fileNames.forEach((fileName) => {
-      const fileDir = path.join(__dirname, relativePath, fileName);
-
-      require(fileDir)(app);
-    });
-});
+  });
 }
 
+module.exports = autoImport;

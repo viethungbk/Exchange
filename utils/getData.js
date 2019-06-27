@@ -5,8 +5,8 @@ const Exchange = require('../models/Exchange');
 const deepEqual = require('../utils/deepEqual');
 
 const baseUrl = 'http://data.fixer.io/api';
-// const timeUpdated = 15 * 60 * 1000; // ms
-const timeUpdated = 1 * 1000; // ms
+const timeUpdated = 15 * 60 * 1000; // ms
+// const timeUpdated = 1 * 1000; // ms
 
 
 const getOldData = () => {
@@ -83,13 +83,14 @@ const getDataAndUpdate = (date = 'latest') => {
     })
 }
 
-// getDataAndUpdate();
-// setInterval(getDataAndUpdate, timeUpdated);
+setInterval(getDataAndUpdate, timeUpdated);
 
-for (let d = new Date('1999-01-01'); d <= Date.now(); d.setDate(d.getDate() + 1)) {
-  const date = d.toISOString().slice(0, 10);
-  console.log(date);
+// const endDate = new Date('2019-01-01');
 
-  getDataAndUpdate(date);
-}
+// for (let d = new Date('2018-01-01'); d <= endDate; d.setDate(d.getDate() + 1)) {
+//   const date = d.toISOString().slice(0, 10);
+//   console.log(date);
+
+//   getDataAndUpdate(date);
+// }
 

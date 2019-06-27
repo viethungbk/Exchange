@@ -1,5 +1,4 @@
 const checkValidDate = (dateString) => {
-  console.log(dateString);
   if (dateString === undefined || dateString === null || dateString === '') {
     return false;
   }
@@ -14,9 +13,6 @@ const checkValidDate = (dateString) => {
 }
 
 const checkPeriod = (startTimeString, endTimeString) => {
-  console.log(startTimeString);
-  console.log(endTimeString);
-
   if (!checkValidDate(startTimeString)) {
     return false;
   }
